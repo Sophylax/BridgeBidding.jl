@@ -1,0 +1,4 @@
+name = "BridgeBidding"
+uuid = "97bd98fb-3e79-4259-ab35-3baa9d978548"
+authors = ["Ulaş \"Sophylax\" Sert <sophylax@sophylax.net>"]
+version = "0.1.0"
