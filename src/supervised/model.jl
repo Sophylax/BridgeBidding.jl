@@ -78,14 +78,7 @@ function BaselineClassifier(;cardembed::Int=32, bidembed::Int=64, vulembed=64,
 end
 
 struct Dropout; probability::Float64; end
-#(d::Dropout)(x) = dropout(x,d.probability)
-function (d::Dropout)(x)
-    y=dropout(x,d.probability)
-    if y != x
-        @info "It just works"
-    end
-    y
-end
+(d::Dropout)(x) = dropout(x,d.probability)
 function Dropout(chain::Chain, probability::Float64)
     layers = [l for l in chain.layers]
     for i in 1:length(layers)
