@@ -34,12 +34,25 @@ function MLP(h...; activation=relu)
     Chain(layers...)
 end
 
+function last_indices(batchsizes)
+    lastsize = 0
+    rev_cursor = sum(batchsizes)
+    indices = Int[]
+    for bs in reverse(batchsizes)
+        term = bs - lastsize
+        append!(indices, rev_cursor-term+1:rev_cursor)
+        rev_cursor -= bs
+        lastsize = bs
+    end
+    indices
+end
+
 struct BaselineClassifier
-	cardembed::Linear
-	bidembed::Embed
-	vulembed::Embed
-	pastencoder::RNN
-	dense::Chain
+    cardembed::Linear
+    bidembed::Embed
+    vulembed::Embed
+    pastencoder::RNN
+    dense::Chain
 end
 
 function (bc::BaselineClassifier)(hand, past, vul, batchsizes)
@@ -53,28 +66,43 @@ function (bc::BaselineClassifier)(hand, past, vul, batchsizes)
 end
 (bc::BaselineClassifier)(x::Tuple) = bc(x...)
 (bc::BaselineClassifier)(x,y) = nll(bc(x),y)
-
-function last_indices(batchsizes)
-	lastsize = 0
-	rev_cursor = sum(batchsizes)
-	indices = Int[]
-	for bs in reverse(batchsizes)
-		term = bs - lastsize
-		append!(indices, rev_cursor-term+1:rev_cursor)
-		rev_cursor -= bs
-		lastsize = bs
-	end
-	indices
+function BaselineClassifier(;cardembed::Int=32, bidembed::Int=64, vulembed=64,
+                            lstmhidden::Int=64, mlphidden::Vector{Int}=[64])
+    BaselineClassifier(
+        Linear(input=52, output=cardembed),
+        Embed(vocab=NUMBIDS+1, embed=bidembed),
+        Embed(vocab=4, embed=vulembed),
+        RNN(bidembed, lstmhidden),
+        MLP(cardembed+vulembed+lstmhidden,mlphidden...,NUMBIDS)
+    )
 end
 
-function BaselineClassifier(;cardembed::Int=32, bidembed::Int=64, vulembed=64,
-							lstmhidden::Int=64, mlphidden::Vector{Int}=[64])
+struct Dropout; probability::Float64; end
+#(d::Dropout)(x) = dropout(x,d.probability)
+function (d::Dropout)(x)
+    y=dropout(x,d.probability)
+    if y != x
+        @info "It just works"
+    end
+    y
+end
+function Dropout(chain::Chain, probability::Float64)
+    layers = [l for l in chain.layers]
+    for i in 1:length(layers)
+        insert!(layers,2*i-1,Dropout(probability))
+    end
+    Chain(layers...)
+end
+
+function DropoutClassifier(;cardembed::Int=32, bidembed::Int=64, vulembed=64,
+                            lstmhidden::Int=64, mlphidden::Vector{Int}=[64],
+                            lstmdropout::Float64=.0, mlpdropout::Float64=.0)
     BaselineClassifier(
-    	Linear(input=52, output=cardembed),
-    	Embed(vocab=NUMBIDS+1, embed=bidembed),
-    	Embed(vocab=4, embed=vulembed),
-    	RNN(bidembed, lstmhidden),
-    	MLP(cardembed+vulembed+lstmhidden,mlphidden...,NUMBIDS)
+        Linear(input=52, output=cardembed),
+        Embed(vocab=NUMBIDS+1, embed=bidembed),
+        Embed(vocab=4, embed=vulembed),
+        RNN(bidembed, lstmhidden, dropout=lstmdropout),
+        Dropout(MLP(cardembed+vulembed+lstmhidden,mlphidden...,NUMBIDS), mlpdropout)
     )
 end
 
