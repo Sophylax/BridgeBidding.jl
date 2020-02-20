@@ -79,17 +79,17 @@ end
 
 struct Dropout; probability::Float64; end
 (d::Dropout)(x) = dropout(x,d.probability)
-function Dropout(chain::Chain, probability::Float64)
+function Dropout(chain::Chain, probabilities::Vector{Float64})
     layers = [l for l in chain.layers]
     for i in 1:length(layers)
-        insert!(layers,2*i-1,Dropout(probability))
+        insert!(layers,2*i-1,Dropout(probabilities[i]))
     end
     Chain(layers...)
 end
 
 function DropoutClassifier(;cardembed::Int=32, bidembed::Int=64, vulembed=64,
                             lstmhidden::Int=64, mlphidden::Vector{Int}=[64],
-                            lstmdropout::Float64=.0, mlpdropout::Float64=.0)
+                            lstmdropout::Float64=.0, mlpdropout::Vector{Float64}=[.0,.0])
     BaselineClassifier(
         Linear(input=52, output=cardembed),
         Embed(vocab=NUMBIDS+1, embed=bidembed),

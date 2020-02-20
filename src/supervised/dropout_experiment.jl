@@ -23,7 +23,7 @@ function main(args::Vector{String})
         ("--lstmhidden"; arg_type=Int; default=128; help="lstm hidden size")
         ("--mlphidden"; nargs='*'; arg_type=Int; default=[64]; help="mlp hidden layer sizes, e.g. --hidden 128 64 for a net with two hidden layers")
         ("--lstmdropout"; arg_type=Float64; default=.0; help="lstm dropout rate")
-        ("--mlpdropout"; arg_type=Float64; default=.0; help="mlp dropout rate")
+        ("--mlpdropout"; nargs='*'; arg_type=Float64; default=[.0,.0]; help="mlp dropout rates, must be one more than hidden layer numbers")
         ("--epochs"; arg_type=Int; default=10; help="number of training epochs")
         ("--seed"; arg_type=Int; default=-1; help="random number seed: use a nonnegative int for repeatable results")
         ("--learningrate"; arg_type=Float64; default=0.001; help="Learning rate for Adam")
@@ -34,12 +34,12 @@ end
 
 function main(;gamesfile::String, epochs::Int=10, batchsize::Int=64,
 			cardembed::Int=32, bidembed::Int=64, vulembed=64, lstmhidden::Int=64,
-			mlphidden::Vector{Int}=[64], lstmdropout::Float64=.0, mlpdropout::Float64=.0,
+			mlphidden::Vector{Int}=[64], lstmdropout::Float64=.0, mlpdropout::Vector{Float64}=[.0,.0],
             seed::Int=-1, learningrate::Float64=0.001)
 
 	@info "Bridge Bidding Baseline Supervised Experiment"
 	@info "Model Configuration" cardembed bidembed vulembed lstmhidden string(mlphidden)
-	@info "Other Hyperparameters" batchsize learningrate epochs lstmdropout mlpdropout
+	@info "Other Hyperparameters" batchsize learningrate epochs lstmdropout string(mlpdropout)
 
 	if seed > 0
 		@info "Setting RNG seed to $seed"
