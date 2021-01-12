@@ -1,3 +1,14 @@
+"""
+	abstract type GameFormat
+
+Abstract type representing a way to play bridge. Expected to implement the following callable function:
+
+```
+(gFormat::GameFormat)(games::Array{DoubleDummy,1}; actor, opponent, record_actor = true, record_opponent = false, greedy = false, nonzeropass = false)
+```
+"""
+abstract type GameFormat end
+
 randombaseline(obs) = ones(38)/38
 
 function playepisode!(state::BridgeState; maxsteps::Int=320, agents=fill(randombaseline, 4))
@@ -30,7 +41,9 @@ function playepisode(game::DoubleDummy; maxsteps::Int=320, agents=fill(randombas
 	playepisode!(state, maxsteps=maxsteps, agents=agents), state
 end
 
-function playepisode(games::Array{DoubleDummy,1}; actormodels, starting_player = WEST, maxsteps::Int=320)
+
+
+function playepisode(games::Array{DoubleDummy,1}; actormodels, starting_player = WEST, maxsteps::Int=320, greedy=fill(false, 4))
 	states = map(games) do game BridgeState(game, starting_player=starting_player) end
 	enum = collect(1:length(states))
 	state_actions = []
@@ -38,13 +51,17 @@ function playepisode(games::Array{DoubleDummy,1}; actormodels, starting_player =
 		player = states[enum[1]].player
 		model = actormodels[player]
 	    observables = map(states[enum]) do state Observation(state) end
-	    policies = Array(softmax(model(observables),dims=1))
+	    policies = Array(softmax(getpolicy(model, observables),dims=1))
 	    @sync for (local_id, global_id) in enumerate(enum)
 	    	@async begin
 	    		legal = legalbids(states[global_id])
-	    		action = sample(legal, Weights(policies[legal, local_id]))
+	    		action = if greedy[player]
+	    			legal[findmax(policies[legal, local_id])[2]]
+	    		else
+	    			sample(legal, Weights(policies[legal, local_id]))
+	    		end
 	    		bid!(states[global_id], action)
-	    		push!(state_actions, (global_id, player, observables[local_id], legal, action))
+	    		push!(state_actions, (global_id, player, observables[local_id], legal, action, policies[action,local_id]/sum(policies[legal, local_id]), policies[:,local_id]))
 	    	end
 		end
 		filter!(enum) do id !states[id].terminated end
@@ -52,13 +69,18 @@ function playepisode(games::Array{DoubleDummy,1}; actormodels, starting_player =
 	    	break
 	    end
 	end
-	scores = map(states) do state score(state) end
-	state_actions = map(state_actions) do (id, player, obs, legal, action)
-		if iseven(player)
-			return (id, player, obs, legal, action, imps(scores[id])/24)
-		else
-			return (id, player, obs, legal, action, imps(-scores[id])/24)
-		end
+	scores = map(states) do state score(state)-parscore(state) end
+	state_actions = map(state_actions) do (id, player, obs, legal, action, actionprob, policy)
+		(
+			id=id,
+			player=player,
+			obs=obs,
+			legal=legal,
+			action=action,
+			score=(imps(scores[id])/24)*(iseven(player) ? 1 : -1),
+			actionprob=actionprob,
+			policy=policy
+		)
 	end
 	state_actions, states
 end

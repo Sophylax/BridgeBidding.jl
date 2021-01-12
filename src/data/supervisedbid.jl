@@ -1,3 +1,8 @@
+"""
+    SupervisedBid(obs::Observation, bid::Int)
+
+A single supervised bid datapoint, recording the `Observation` and the expected bid.
+"""
 struct SupervisedBid
     obs::Observation
     bid::Int
@@ -80,6 +85,16 @@ function processgameforbids(game)
     supervised_data
 end
 
+"""
+
+    SupervisedBidSet(games::Array{SupervisedBid,1}; batchsize::Int=32, shuffled::Bool=true)
+
+Iterator structure for a collection of supervised bid instances. Each iteration will generate `batchsize` amount of instances. `shuffled` randomizes the order the instances are received.
+
+Iterator retruns a vector of Observation and a vector of expected bids.
+
+See also: [`generate_supervised_bidset`](@ref)
+"""
 mutable struct SupervisedBidSet
     bids::Array{SupervisedBid,1}
     batchsize::Int
@@ -108,6 +123,19 @@ end
 
 Base.length(d::SupervisedBidSet) = Int(ceil(d.ninstances/d.batchsize))
 
+"""
+    generate_supervised_bidset(games_file; <keyword arguments>)
+
+Generate SupervisedBidSet(s) from given data set file and return them in a Vector.
+
+# Arguments
+- `games_file::String`: Location of the data set file.
+- `split_ratios::Vector{Int}=[1]`: Vector of magnitudes that is used to split the data set before constructing SupervisedBidSet(s). 
+- `batchsize::Int=32`: Passed to the SupervisedBidSet constructors.
+- `shuffled::Bool=true`: Passed to the SupervisedBidSet constructors.
+- `mix_games::Bool=true`: Mix the games SupervisedBidSet before constructing the sets. Useful for randomzied splits.
+- `mix_seed::Int=5318008`: Seed for mixing. Non-positive seed uses normal rng.
+"""
 function generate_supervised_bidset(games_file::String; split_ratios::Vector{Int}=[1],
 							batchsize::Int=32, shuffled::Bool=true,
                             mix_games::Bool=true, mix_seed::Int=5318008)

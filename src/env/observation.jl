@@ -1,3 +1,10 @@
+"""
+    Observation(hand::Array{Int}, past::Array{Int}, vul::Tuple{Int, Int})
+
+The standard structure representing a player's perspective in auction.
+
+It can be called directly by giving BridgeState, which gives the Observation for the current player. 
+"""
 struct Observation
     hand::Array{Int}
     past::Array{Int}

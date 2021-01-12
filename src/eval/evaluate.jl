@@ -4,9 +4,18 @@ mutable struct Evaluate{I}
     start::Bool
 	value
     bypass
+    cycle
 end
 
-evaluate(func::Base.Callable, iter::I; bypass=nothing) where {I} = Evaluate{I}(func,iter,false,nothing, bypass)
+"""
+    evaluate(func::Base.Callable, iter::I; bypass=nothing, cycle=0) where {I}
+
+Wrapper iterator which calls the given *func* every *cycle* iterations.
+
+# Arguments
+- `bypass::Union{Nothing, Bool}`: If true, the iterator returns the value of the inner iterator. If false, it returns the last value from the external function. If nothing, it returns both of them in a tuple.
+"""
+evaluate(func::Base.Callable, iter::I; bypass=nothing, cycle=0) where {I} = Evaluate{I}(func,iter,false,nothing, bypass, cycle)
 evaluate(iter; bypass=nothing)=evaluate(()->"",iter, bypass=bypass)
 Base.length(e::Evaluate) = length(e.iter)
 
@@ -19,6 +28,11 @@ function Base.iterate(e::Evaluate, state=(length(e),))
     inner_iter = iterate(e.iter, inner_state...)
     if isnothing(inner_iter)
     	return nothing
+    end
+    if e.cycle > 0
+        if remain != length(e) && ((length(e)-remain)%e.cycle == 0)
+            e.value = e.func()
+        end
     end
     if remain == 1
     	e.value = e.func()

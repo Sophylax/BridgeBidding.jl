@@ -1,5 +1,5 @@
 #RNNALT MkV - Hand/Vul concatenated on all tokens, bids are processed 4 by 4
-struct RnnMlpModelMkV <: BridgeModel
+struct RnnMlpModelMkV <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

@@ -1,8 +1,28 @@
+
+
+"""
+    DoubleDummy(hands, tricks)
+
+A double dummy analysis instance consisting a bridge deal and resulting tricks table.
+
+# Fields
+- `hands::Vector{Vector{Int}}`: Vector of four Vectors, one for each player/side. Each inner Vector contains 13 integers for the cards.
+- `tricks::Array{Int, 2}`: Number of tricks taken by North-South for all trumps and leads. First dimension is for trumps and second one is for leads. 
+"""
 struct DoubleDummy
 	hands #(Array of four arrays, each having 13 integers for WEST NORTH EAST SOUTH respectively
 	tricks #2D array of number of tricks taken by NS for all trumps and leads, eg. tricks[HEARTS,NORTH]
 end
 
+"""
+    DoubleDummySet(games::Array{DoubleDummy,1}; batchsize::Int=32, shuffled::Bool=true)
+
+Iterator structure for a collection of double dummy instances. Each iteration will generate `batchsize` amount of instances. `shuffled` randomizes the order the instances are received.
+
+Iterator retruns a vector of DoubleDummy.
+
+See also: [`generate_doubledummy_gameset`](@ref)
+"""
 mutable struct DoubleDummySet
     games::Array{DoubleDummy,1}
     batchsize::Int
@@ -15,8 +35,13 @@ function DoubleDummySet(games; batchsize::Int=32, shuffled::Bool=true)
     DoubleDummySet(games, batchsize, ninstances, shuffled)
 end
 
-function BridgeState(dd::DoubleDummy; starting_player = WEST, nsvul = false, ewvul = false)
-    BridgeState(dd.hands, [], starting_player, starting_player, nsvul, ewvul, false, dd.tricks)
+"""
+    BridgeState(dd::DoubleDummy; args...)
+
+Construct a BridgeState for a given double dummy instance.
+"""
+function BridgeState(dd::DoubleDummy; args...)
+    BridgeState(dd.hands, dd.tricks; args...)
 end
 
 function Base.iterate(d::DoubleDummySet, state=ifelse(d.shuffled, randperm(d.ninstances), 1:d.ninstances))
@@ -32,6 +57,19 @@ end
 
 Base.length(d::DoubleDummySet) = Int(ceil(d.ninstances/d.batchsize))
 
+"""
+    generate_doubledummy_gameset(games_file; <keyword arguments>)
+
+Generate DoubleDummySet(s) from given data set file and return them in a Vector.
+
+# Arguments
+- `games_file::String`: Location of the data set file.
+- `split_ratios::Vector{Int}=[1]`: Vector of magnitudes that is used to split the data set before constructing DoubleDummySet(s). 
+- `batchsize::Int=32`: Passed to the DoubleDummySet constructors.
+- `shuffled::Bool=true`: Passed to the DoubleDummySet constructors.
+- `mix_games::Bool=true`: Mix the games before constructing the sets. Useful for randomzied splits.
+- `mix_seed::Int=5318008`: Seed for mixing. Non-positive seed uses normal rng.
+"""
 function generate_doubledummy_gameset(games_file::String; split_ratios::Vector{Int}=[1],
                                     batchsize::Int=32, shuffled::Bool=true,
                                     mix_games::Bool=true, mix_seed::Int=5318008)

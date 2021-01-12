@@ -9,6 +9,14 @@ mutable struct TimedEvaluate{I}
     ratio
 end
 
+"""
+    timedevaluate(func::Base.Callable, iter::I; bypass=nothing, ratio=10) where {I}
+
+Wrapper iterator which calls the given *func*, whenever execution of the inner iterator took more than the *ratio* times the time spent on the external function.
+
+# Arguments
+- `bypass::Union{Nothing, Bool}`: If true, the iterator returns the value of the inner iterator. If false, it returns the last value from the external function. If nothing, it returns both of them in a tuple.
+"""
 timedevaluate(func::Base.Callable, iter::I; bypass=nothing, ratio=10) where {I} = TimedEvaluate{I}(func,iter,false,0,0,nothing,bypass,ratio)
 timedevaluate(iter; bypass=nothing, ratio=10)=timedevaluate(()->"",iter, bypass=bypass, ratio=ratio)
 Base.length(e::TimedEvaluate) = length(e.iter)

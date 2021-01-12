@@ -1,3 +1,14 @@
+"""
+    GameScoreEvaluator(dataset; onnewbest = nothing)
+
+Evaluator that plays a game versus itself and records the distance to the par score.
+
+Optionally with *onnewbest*, it will track the best performance and call *onnewbest()* when a new best is reached.
+
+    (gse::GameScoreEvaluator)(model)
+
+Run the evaluation using the given model.
+"""
 mutable struct GameScoreEvaluator
     dataset
     lastbest
@@ -9,14 +20,12 @@ function GameScoreEvaluator(dataset; onnewbest = nothing)
 end
 
 function (gse::GameScoreEvaluator)(model)
-    println(stderr)
-
     total_score = 0
     game_count = 0
     for games in gse.dataset
         #Play Game
-        _,states = playepisode(games, actormodels=fill(model, 4))
-        total_score += sum(map(states) do st imps(abs(score(st))) end)  #TODO: Different starting players, different vuls. Random or just go over all??
+        _,states = playepisode(games, actormodels=fill(model, 4), greedy=fill(true, 4))
+        total_score += sum(map(states) do st imps(abs(score(st)-parscore(st))) end)  #TODO: Different starting players, different vuls. Random or just go over all??
         game_count += length(states)
     end
     game_avg = total_score / game_count

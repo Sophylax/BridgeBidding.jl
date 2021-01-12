@@ -1,3 +1,14 @@
+"""
+    SupervisedBidEvaluator(trainingset, testingset; onnewbest = nothing)
+
+Evaluator that calculates the accuracy of bids, when given supervised datasets.
+
+Optionally with *onnewbest*, it will track the best performance and call *onnewbest()* when a new best in test set is reached.
+
+    (se::SupervisedBidEvaluator)(model)
+
+Run the evaluation using the given model.
+"""
 mutable struct SupervisedBidEvaluator
     trainingset
     testingset

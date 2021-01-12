@@ -1,5 +1,5 @@
 #RNNALT MkIV - Hand/Vul concatenated on all tokens
-struct RnnMlpModelMkIV <: BridgeModel
+struct RnnMlpModelMkIV <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

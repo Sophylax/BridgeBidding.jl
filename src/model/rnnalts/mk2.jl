@@ -1,5 +1,5 @@
 #RNNALT MkII - Hand/Vul into hidden layer
-struct RnnMlpModelMkII <: BridgeModel
+struct RnnMlpModelMkII <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

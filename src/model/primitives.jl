@@ -46,3 +46,8 @@ function last_indices_for_rnn(batchsizes)
     end
     indices
 end
+
+struct Residual
+    layer
+end
+(r::Residual)(x) = r.layer(x) .+ x

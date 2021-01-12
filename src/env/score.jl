@@ -38,7 +38,7 @@ function points(hands, trump, contract, double, vul)
     end
 end
 
-const impscale = [20,50,90,130,170,220,270,320,370,430,500,600,750,900,1100,1300,1500,1750,2000,2250,2500,3000,3500,4000,10581]
+const impscale = [20,50,90,130,170,220,270,320,370,430,500,600,750,900,1100,1300,1500,1750,2000,2250,2500,3000,3500,4000,Inf]#15201#10581]
 
 """
     imps(points)
@@ -120,7 +120,11 @@ function parscore(results; dealer=SOUTH, nsvul=false, ewvul=false)
             end
         end
         if par == 0
-            decl = mod1(decl+1,4)
+            if iter < 4
+                decl = mod1(decl+1,4)
+            else
+                return 0,0,0,iter
+            end
         elseif (par,bid,decl) == saved
             break
         elseif iter > 10

@@ -1,3 +1,14 @@
+"""
+    SupervisedMultiEvaluator(trainingset, testingset; onnewbest = nothing)
+
+Evaluator that calculates the accuracy of predicted bids, the distance of predicted action-values and values, when given supervised datasets.
+
+Optionally with *onnewbest*, it will track the best performance and call *onnewbest()* when a new best in bid accuracy over the test set is reached.
+
+    (sme::SupervisedMultiEvaluator)(model)
+
+Run the evaluation using the given model.
+"""
 mutable struct SupervisedMultiEvaluator
     trainingset
     testingset

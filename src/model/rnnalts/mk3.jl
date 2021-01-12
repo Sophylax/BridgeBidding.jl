@@ -1,5 +1,5 @@
 #RNNALT MkIII - Hand/Vul as first token
-struct RnnMlpModelMkIII <: BridgeModel
+struct RnnMlpModelMkIII <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

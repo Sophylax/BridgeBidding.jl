@@ -1,4 +1,4 @@
-struct RnnMlpMultiHeadModel <: BridgeModel
+struct RnnMlpMultiHeadModel <: BridgeMultiModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

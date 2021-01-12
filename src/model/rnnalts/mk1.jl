@@ -1,4 +1,4 @@
-struct RnnMlpModel <: BridgeModel
+struct RnnMlpModel <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed

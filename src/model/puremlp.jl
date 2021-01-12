@@ -1,4 +1,4 @@
-struct MlpModel <: BridgeModel
+struct MlpModel <: BridgePolicyModel
     cardembed::Linear
     bidembed::Embed
     vulembed::Embed
