@@ -24,6 +24,7 @@ function Base.getproperty(model::BridgeModel, v::Symbol)
 end
 
 (model::BridgeModel)(x::Union{Observation, Array{Observation,1}}) = model(model.observer(x))
+(model::BridgeModel)(x::Union{Observation, Array{Observation,1}}, y...) = model(model.observer(x), y...)
 
 abstract type BridgePolicyModel <: BridgeModel end
 
